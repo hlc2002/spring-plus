@@ -5,6 +5,8 @@ import com.hlc.springplus.bean.annotation.AutoWired;
 import com.hlc.springplus.bean.annotation.Component;
 import com.hlc.springplus.bean.annotation.Lazy;
 import com.hlc.springplus.bean.annotation.Scope;
+import com.hlc.springplus.context.aware.ApplicationContextAware;
+import com.hlc.springplus.context.aware.Aware;
 import com.hlc.springplus.core.SpringApplication;
 
 import java.io.File;
@@ -60,6 +62,7 @@ public class DefaultApplicationContext implements ApplicationContext {
     public <T> void registerBean(T bean, Class<T> clazz, String name) {
         singletonBeanMap.put(name, bean);
     }
+
 
     /**
      * 扫描bean的字节码列表
@@ -173,7 +176,8 @@ public class DefaultApplicationContext implements ApplicationContext {
                         Object newInstance = clazz.getDeclaredConstructor().newInstance();
                         //属性填充
                         attributeAutoWiredPadding(clazz, newInstance);
-
+                        //aware能力透传
+                        awareBeanInstancePadding(newInstance);
                         if (null != beanName && !beanName.isEmpty()) {
                             singletonBeanMap.put(beanName, newInstance);
                         } else {
@@ -239,6 +243,21 @@ public class DefaultApplicationContext implements ApplicationContext {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * bean的Aware接口的实现类填充
+     *
+     * @param bean bean实例对象
+     */
+    private void awareBeanInstancePadding(Object bean) {
+        if (null != bean) {
+            if (bean instanceof Aware) {
+                if (bean instanceof ApplicationContextAware) {
+                    ((ApplicationContextAware) bean).setApplicationContext(this);
                 }
             }
         }

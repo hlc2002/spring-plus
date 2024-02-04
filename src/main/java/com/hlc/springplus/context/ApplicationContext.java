@@ -1,7 +1,5 @@
 package com.hlc.springplus.context;
 
-import java.util.List;
-
 /**
  * @author : spring
  * {@code @description:}
@@ -11,5 +9,6 @@ import java.util.List;
  */
 public interface ApplicationContext {
     Object getBean(String beanName);
-    <T> void registerBean(T bean,Class<T> clazz,String name);
+
+    <T> void registerBean(T bean, Class<T> clazz, String name);
 }
