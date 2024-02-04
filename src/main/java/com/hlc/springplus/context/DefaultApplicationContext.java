@@ -61,6 +61,11 @@ public class DefaultApplicationContext implements ApplicationContext {
         singletonBeanMap.put(name, bean);
     }
 
+    /**
+     * 扫描bean的字节码列表
+     *
+     * @param beanClazzList bean的字节码列表(待填充)
+     */
     protected void scanBeansByPackage(List<Class<?>> beanClazzList) {
 
         if (null != appconfig && appconfig.isAnnotationPresent(SpringApplication.class)) {
@@ -97,6 +102,12 @@ public class DefaultApplicationContext implements ApplicationContext {
         }
     }
 
+    /**
+     * 加载bean的字节码列表并过滤
+     *
+     * @param beanClazzList bean的字节码列表(待填充)
+     * @param item          文件或文件夹
+     */
     private void loadAndFilterBeanClazzes(List<Class<?>> beanClazzList, File item) {
         int begin = item.getAbsolutePath().indexOf("com");
         int end = item.getAbsolutePath().indexOf('.');
@@ -114,6 +125,12 @@ public class DefaultApplicationContext implements ApplicationContext {
         }
     }
 
+    /**
+     * 注册bean的BeanDefinition初始配置信息
+     *
+     * @param beanClazzList     bean的字节类型列表
+     * @param beanDefinitionMap bean的BeanDefinition初始配置信息池子
+     */
     private void initBeanDefinition(List<Class<?>> beanClazzList, Map<String, BeanDefinition> beanDefinitionMap) {
         if (null != beanClazzList && !beanClazzList.isEmpty()) {
             for (Class<?> clazz : beanClazzList) {
@@ -134,6 +151,12 @@ public class DefaultApplicationContext implements ApplicationContext {
         }
     }
 
+    /**
+     * 实例化单例bean
+     *
+     * @param beanDefinitionMap bean定义信息
+     * @param singletonBeanMap  单例bean池子
+     */
     private void instanceSingletonBeans(Map<String, BeanDefinition> beanDefinitionMap, Map<String, Object> singletonBeanMap) {
 
         if (null != beanDefinitionMap && !beanDefinitionMap.isEmpty()) {
@@ -165,6 +188,12 @@ public class DefaultApplicationContext implements ApplicationContext {
         }
     }
 
+    /**
+     * bean的属性填充
+     *
+     * @param beanClazz   bean的字节类型
+     * @param newInstance 实例化的bean
+     */
     private void attributeAutoWiredPadding(Class<?> beanClazz, Object newInstance) {
         if (null != beanClazz) {
             Field[] fields = beanClazz.getDeclaredFields();
