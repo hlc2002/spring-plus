@@ -1,14 +1,17 @@
 package com.hlc.springplus.context;
 
 import com.hlc.springplus.bean.BeanDefinition;
+import com.hlc.springplus.bean.annotation.AutoWired;
 import com.hlc.springplus.bean.annotation.Component;
 import com.hlc.springplus.bean.annotation.Lazy;
 import com.hlc.springplus.bean.annotation.Scope;
 import com.hlc.springplus.core.SpringApplication;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -143,8 +146,10 @@ public class DefaultApplicationContext implements ApplicationContext {
                     try {
                         Component component = clazz.getAnnotation(Component.class);
                         String beanName = component.name();
-
+                        //实例化bean
                         Object newInstance = clazz.getDeclaredConstructor().newInstance();
+                        //属性填充
+                        attributeAutoWiredPadding(clazz, newInstance);
 
                         if (null != beanName && !beanName.isEmpty()) {
                             singletonBeanMap.put(beanName, newInstance);
@@ -154,6 +159,56 @@ public class DefaultApplicationContext implements ApplicationContext {
                     } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                              IllegalAccessException e) {
                         throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+    }
+
+    private void attributeAutoWiredPadding(Class<?> beanClazz, Object newInstance) {
+        if (null != beanClazz) {
+            Field[] fields = beanClazz.getDeclaredFields();
+
+            if (null != fields) {
+                for (Field field : fields) {
+
+                    if (field.isAnnotationPresent(AutoWired.class)) {
+
+                        field.setAccessible(true);
+                        Class<?> declaringClass = field.getDeclaringClass();
+
+                        AutoWired autoWired = field.getAnnotation(AutoWired.class);
+                        String name = autoWired.value();
+
+                        if (null == name || name.isEmpty()) {
+                            name = declaringClass.getSimpleName();
+                        }
+
+                        Object fieldBean = singletonBeanMap.get(name);
+
+                        if (null == fieldBean) {
+
+                            List<Class<?>> beanClazzList = new LinkedList<>();
+                            beanClazzList.add(declaringClass);
+                            initBeanDefinition(beanClazzList, beanDefinitionMap);
+
+                            Map<String, BeanDefinition> definitionMap = new HashMap<>();
+                            definitionMap.put(name, beanDefinitionMap.get(name));
+                            instanceSingletonBeans(definitionMap, singletonBeanMap);
+
+                            try {
+                                field.set(newInstance, singletonBeanMap.get(name));
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e.getMessage());
+                            }
+                        } else {
+
+                            try {
+                                field.set(newInstance, fieldBean);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e.getMessage());
+                            }
+                        }
                     }
                 }
             }
