@@ -220,45 +220,43 @@ public class DefaultApplicationContext implements ApplicationContext {
         if (null != beanClazz) {
             Field[] fields = beanClazz.getDeclaredFields();
 
-            if (null != fields) {
-                for (Field field : fields) {
+            for (Field field : fields) {
 
-                    if (field.isAnnotationPresent(AutoWired.class)) {
+                if (field.isAnnotationPresent(AutoWired.class)) {
 
-                        field.setAccessible(true);
-                        Class<?> declaringClass = field.getType();
+                    field.setAccessible(true);
+                    Class<?> declaringClass = field.getType();
 
-                        AutoWired autoWired = field.getAnnotation(AutoWired.class);
-                        String name = autoWired.value();
+                    AutoWired autoWired = field.getAnnotation(AutoWired.class);
+                    String name = autoWired.value();
 
-                        if (null == name || name.isEmpty()) {
-                            name = declaringClass.getSimpleName();
+                    if (null == name || name.isEmpty()) {
+                        name = declaringClass.getSimpleName();
+                    }
+
+                    Object fieldBean = singletonBeanMap.get(name);
+
+                    if (null == fieldBean) {
+
+                        List<Class<?>> beanClazzList = new LinkedList<>();
+                        beanClazzList.add(declaringClass);
+                        initBeanDefinition(beanClazzList, beanDefinitionMap);
+
+                        Map<String, BeanDefinition> definitionMap = new HashMap<>();
+                        definitionMap.put(name, beanDefinitionMap.get(name));
+                        instanceSingletonBeans(definitionMap, singletonBeanMap);
+
+                        try {
+                            field.set(newInstance, singletonBeanMap.get(name));
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e.getMessage());
                         }
+                    } else {
 
-                        Object fieldBean = singletonBeanMap.get(name);
-
-                        if (null == fieldBean) {
-
-                            List<Class<?>> beanClazzList = new LinkedList<>();
-                            beanClazzList.add(declaringClass);
-                            initBeanDefinition(beanClazzList, beanDefinitionMap);
-
-                            Map<String, BeanDefinition> definitionMap = new HashMap<>();
-                            definitionMap.put(name, beanDefinitionMap.get(name));
-                            instanceSingletonBeans(definitionMap, singletonBeanMap);
-
-                            try {
-                                field.set(newInstance, singletonBeanMap.get(name));
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e.getMessage());
-                            }
-                        } else {
-
-                            try {
-                                field.set(newInstance, fieldBean);
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e.getMessage());
-                            }
+                        try {
+                            field.set(newInstance, fieldBean);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e.getMessage());
                         }
                     }
                 }
