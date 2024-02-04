@@ -7,6 +7,8 @@ import com.hlc.springplus.bean.annotation.Lazy;
 import com.hlc.springplus.bean.annotation.Scope;
 import com.hlc.springplus.context.aware.ApplicationContextAware;
 import com.hlc.springplus.context.aware.Aware;
+import com.hlc.springplus.context.lifecycle.InitializingBean;
+import com.hlc.springplus.context.postprocessor.BeanPostprocessor;
 import com.hlc.springplus.core.SpringApplication;
 
 import java.io.File;
@@ -33,6 +35,7 @@ public class DefaultApplicationContext implements ApplicationContext {
     private Map<String, Object> singletonBeanMap = new ConcurrentHashMap<>();
 
     private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+    private List<BeanPostprocessor> beanPostprocessorList = new LinkedList<>();
 
     public DefaultApplicationContext(Class<?> appconfig) {
         this.appconfig = appconfig;
@@ -121,6 +124,10 @@ public class DefaultApplicationContext implements ApplicationContext {
             Class<?> clazz = Class.forName(className);
             if (clazz.isAnnotationPresent(Component.class)) {
                 beanClazzList.add(clazz);
+                //收集后置处理器（意图是收集后置处理器而不是收集bean对象）
+                if (BeanPostprocessor.class.isAssignableFrom(clazz)) {
+                    beanPostprocessorList.add((BeanPostprocessor) clazz.getDeclaredConstructor().newInstance());
+                }
             }
         } catch (Exception e) {
 
@@ -172,17 +179,28 @@ public class DefaultApplicationContext implements ApplicationContext {
                     try {
                         Component component = clazz.getAnnotation(Component.class);
                         String beanName = component.name();
-                        //实例化bean
-                        Object newInstance = clazz.getDeclaredConstructor().newInstance();
-                        //属性填充
-                        attributeAutoWiredPadding(clazz, newInstance);
-                        //aware能力透传
-                        awareBeanInstancePadding(newInstance);
-                        if (null != beanName && !beanName.isEmpty()) {
-                            singletonBeanMap.put(beanName, newInstance);
-                        } else {
-                            singletonBeanMap.put(clazz.getSimpleName(), newInstance);
+                        if (null == beanName || beanName.isEmpty()) {
+                            beanName = clazz.getSimpleName();
                         }
+                        //1、实例化bean
+                        Object newInstance = clazz.getDeclaredConstructor().newInstance();
+                        //2、属性填充
+                        attributeAutoWiredPadding(clazz, newInstance);
+                        //3、aware能力透传
+                        awareBeanInstancePadding(newInstance);
+                        //4、初始化
+                        //4.1、后置处理器 初始化前执行
+                        for (BeanPostprocessor beanPostprocessor : beanPostprocessorList) {
+                            newInstance = beanPostprocessor.beforeInitialization(newInstance, beanName);
+                        }
+                        //4.2、初始化bean执行
+                        initializeBeanInstancePadding(newInstance);
+                        //4.3、后置处理器能力 初始化后执行
+                        for (BeanPostprocessor beanPostprocessor : beanPostprocessorList) {
+                            newInstance = beanPostprocessor.afterInitialization(newInstance, beanName);
+                        }
+
+                        singletonBeanMap.put(beanName, newInstance);
                     } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                              IllegalAccessException e) {
                         throw new RuntimeException(e);
@@ -259,6 +277,19 @@ public class DefaultApplicationContext implements ApplicationContext {
                 if (bean instanceof ApplicationContextAware) {
                     ((ApplicationContextAware) bean).setApplicationContext(this);
                 }
+            }
+        }
+    }
+
+    /**
+     * bean的初始化方法填充
+     *
+     * @param bean 实例化的bean
+     */
+    private void initializeBeanInstancePadding(Object bean) {
+        if (null != bean) {
+            if (bean instanceof InitializingBean) {
+                ((InitializingBean) bean).afterPropertiesSet();
             }
         }
     }
