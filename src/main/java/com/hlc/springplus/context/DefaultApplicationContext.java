@@ -204,7 +204,7 @@ public class DefaultApplicationContext implements ApplicationContext {
                     if (field.isAnnotationPresent(AutoWired.class)) {
 
                         field.setAccessible(true);
-                        Class<?> declaringClass = field.getDeclaringClass();
+                        Class<?> declaringClass = field.getType();
 
                         AutoWired autoWired = field.getAnnotation(AutoWired.class);
                         String name = autoWired.value();

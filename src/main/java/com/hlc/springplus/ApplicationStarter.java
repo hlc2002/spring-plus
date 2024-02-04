@@ -17,8 +17,6 @@ public class ApplicationStarter {
     public static void main(String[] args) {
         ApplicationContext applicationContext = new DefaultApplicationContext(ApplicationStarter.class);
         TestBean contextBean = (TestBean) applicationContext.getBean("test");
-        System.out.println(applicationContext.getBean("test"));
-        System.out.println(applicationContext.getBean("test"));
-        System.out.println(applicationContext.getBean("test"));
+        contextBean.test();
     }
 }

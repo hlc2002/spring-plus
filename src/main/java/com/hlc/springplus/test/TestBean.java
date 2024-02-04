@@ -1,7 +1,7 @@
 package com.hlc.springplus.test;
 
+import com.hlc.springplus.bean.annotation.AutoWired;
 import com.hlc.springplus.bean.annotation.Component;
-import com.hlc.springplus.bean.annotation.Lazy;
 import com.hlc.springplus.bean.annotation.Scope;
 
 /**
@@ -14,6 +14,9 @@ import com.hlc.springplus.bean.annotation.Scope;
 @Component(name = "test")
 @Scope(value = "singleton")
 public class TestBean {
+    @AutoWired
+    private TestBean1 testBean1;
+
     private String content = "test";
 
     public String getContent() {
@@ -29,5 +32,9 @@ public class TestBean {
 
     public TestBean(String content) {
         this.content = content;
+    }
+
+    public void test() {
+        testBean1.test();
     }
 }
