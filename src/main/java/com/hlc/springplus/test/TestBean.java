@@ -1,6 +1,8 @@
 package com.hlc.springplus.test;
 
 import com.hlc.springplus.bean.annotation.Component;
+import com.hlc.springplus.bean.annotation.Lazy;
+import com.hlc.springplus.bean.annotation.Scope;
 
 /**
  * @author : spring
@@ -10,6 +12,7 @@ import com.hlc.springplus.bean.annotation.Component;
  * {@code @project:} spring-plus
  */
 @Component(name = "test")
+@Scope(value = "singleton")
 public class TestBean {
     private String content = "test";
 
@@ -23,14 +26,8 @@ public class TestBean {
 
     public TestBean() {
     }
+
     public TestBean(String content) {
         this.content = content;
-    }
-
-    @Override
-    public String toString() {
-        return "TestBean{" +
-                "content='" + content + '\'' +
-                '}';
     }
 }
