@@ -4,6 +4,7 @@ import com.hlc.springplus.bean.BeanDefinition;
 import com.hlc.springplus.bean.annotation.*;
 import com.hlc.springplus.context.aware.ApplicationContextAware;
 import com.hlc.springplus.context.aware.Aware;
+import com.hlc.springplus.context.aware.BeanNameAware;
 import com.hlc.springplus.context.lifecycle.InitializingBean;
 import com.hlc.springplus.context.postprocessor.BeanPostprocessor;
 import com.hlc.springplus.core.SpringApplication;
@@ -277,6 +278,9 @@ public class DefaultApplicationContext implements ApplicationContext {
             if (bean instanceof Aware) {
                 if (bean instanceof ApplicationContextAware) {
                     ((ApplicationContextAware) bean).setApplicationContext(this);
+                }
+                if (bean instanceof BeanNameAware) {
+                    ((BeanNameAware) bean).setBeanName();
                 }
             }
         }
