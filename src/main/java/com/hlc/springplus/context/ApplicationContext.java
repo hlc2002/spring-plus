@@ -1,5 +1,7 @@
 package com.hlc.springplus.context;
 
+import com.hlc.springplus.factory.BeanFactory;
+
 /**
  * @author : spring
  * {@code @description:}
@@ -7,7 +9,7 @@ package com.hlc.springplus.context;
  * {@code @modified} By: spring
  * {@code @project:} spring-plus
  */
-public interface ApplicationContext {
+public interface ApplicationContext extends BeanFactory {
     Object getBean(String beanName);
 
     <T> void registerBean(T bean, Class<T> clazz, String name);

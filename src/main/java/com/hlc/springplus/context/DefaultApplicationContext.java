@@ -1,10 +1,7 @@
 package com.hlc.springplus.context;
 
 import com.hlc.springplus.bean.BeanDefinition;
-import com.hlc.springplus.bean.annotation.AutoWired;
-import com.hlc.springplus.bean.annotation.Component;
-import com.hlc.springplus.bean.annotation.Lazy;
-import com.hlc.springplus.bean.annotation.Scope;
+import com.hlc.springplus.bean.annotation.*;
 import com.hlc.springplus.context.aware.ApplicationContextAware;
 import com.hlc.springplus.context.aware.Aware;
 import com.hlc.springplus.context.lifecycle.InitializingBean;
@@ -14,6 +11,7 @@ import com.hlc.springplus.core.SpringApplication;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -194,7 +192,10 @@ public class DefaultApplicationContext implements ApplicationContext {
                             newInstance = beanPostprocessor.beforeInitialization(newInstance, beanName);
                         }
                         //4.2、初始化bean执行
+                        //检查是否实现初始化Bean的接口
                         initializeBeanInstancePadding(newInstance);
+                        //检查是否配置过init方法
+                        initBeanMethodInstancePadding(newInstance);
                         //4.3、后置处理器能力 初始化后执行
                         for (BeanPostprocessor beanPostprocessor : beanPostprocessorList) {
                             newInstance = beanPostprocessor.afterInitialization(newInstance, beanName);
@@ -209,6 +210,8 @@ public class DefaultApplicationContext implements ApplicationContext {
             }
         }
     }
+
+
 
     /**
      * bean的属性填充
@@ -292,6 +295,26 @@ public class DefaultApplicationContext implements ApplicationContext {
         }
     }
 
+    /**
+     * bean的初始化方法填充
+     *
+     * @param newInstance 实例化的bean
+     */
+    private void initBeanMethodInstancePadding(Object newInstance) {
+        if (null != newInstance) {
+            Method[] methods = newInstance.getClass().getDeclaredMethods();
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(InitBeanMethod.class)) {
+                    method.setAccessible(true);
+                    try {
+                        method.invoke(newInstance);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                }
+            }
+        }
+    }
     private void sortBeanInstanceClazzList() {
 
     }
