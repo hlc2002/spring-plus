@@ -101,10 +101,10 @@ public class DefaultApplicationContext implements ApplicationContext {
                     }
                 }
             } else {
-                throw new RuntimeException("");
+                throw new RuntimeException("Annotation SpringApplication is not exist");
             }
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("Annotation SpringApplication is not exist and appconfig is null");
         }
     }
 
@@ -203,7 +203,7 @@ public class DefaultApplicationContext implements ApplicationContext {
                         singletonBeanMap.put(beanName, newInstance);
                     } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                              IllegalAccessException e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(e.getMessage());
                     }
                 }
             }
