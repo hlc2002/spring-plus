@@ -39,7 +39,7 @@ public class DefaultApplicationContext implements ApplicationContext {
 
     public DefaultApplicationContext(Class<?> appconfig) {
         this.appconfig = appconfig;
-        //1、扫描bean的字节码列表
+        //1、扫描启动类注解的字节码列表
         scanBeansByPackage(beanClazzList);
         //2、注册bean的BeanDefinition初始配置信息
         initBeanDefinition(beanClazzList, beanDefinitionMap);
