@@ -8,10 +8,18 @@ package com.hlc.springplus.bean;
  * {@code @project:} spring-plus
  */
 public class BeanDefinition {
+    private String name;
     private String scope;
     private Boolean isLazy;
     private Class<?> beanClazz;
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getScope() {
         return scope;

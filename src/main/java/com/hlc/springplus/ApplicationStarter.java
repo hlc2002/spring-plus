@@ -3,6 +3,7 @@ package com.hlc.springplus;
 import com.hlc.springplus.context.ApplicationContext;
 import com.hlc.springplus.context.DefaultApplicationContext;
 import com.hlc.springplus.core.SpringApplication;
+import com.hlc.springplus.core.SpringApplicationStarter;
 import com.hlc.springplus.test.TestBean;
 
 /**
@@ -15,8 +16,9 @@ import com.hlc.springplus.test.TestBean;
 @SpringApplication(scanBeanPackagePath = "com/hlc/springplus/test")
 public class ApplicationStarter {
     public static void main(String[] args) {
-        ApplicationContext applicationContext = new DefaultApplicationContext(ApplicationStarter.class);
-        TestBean contextBean = (TestBean) applicationContext.getBean("test");
-        contextBean.test();
+        SpringApplicationStarter.run(ApplicationStarter.class,args);
+//        ApplicationContext applicationContext = new DefaultApplicationContext(ApplicationStarter.class);
+//        TestBean contextBean = (TestBean) applicationContext.getBean("test");
+//        contextBean.test();
     }
 }
