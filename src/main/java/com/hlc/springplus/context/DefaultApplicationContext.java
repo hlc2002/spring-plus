@@ -31,12 +31,13 @@ public class DefaultApplicationContext implements ApplicationContext {
     private final Class<?> appconfig;
 
     private List<Class<?>> beanClazzList = new LinkedList<>();
-    private Map<String, Object> singletonBeanMap = new ConcurrentHashMap<>();
+    private Map<String, Object> singletonBeanMap = new ConcurrentHashMap<>(256);
 
-    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
     private List<BeanPostprocessor> beanPostprocessorList = new LinkedList<>();
 
     public DefaultApplicationContext(Class<?> appconfig) {
+        // 传入启动类加载启动类上的配置
         this.appconfig = appconfig;
         //1、扫描启动类注解的字节码列表
         scanBeansByPackage(beanClazzList);
@@ -72,30 +73,33 @@ public class DefaultApplicationContext implements ApplicationContext {
      * @param beanClazzList bean的字节码列表(待填充)
      */
     protected void scanBeansByPackage(List<Class<?>> beanClazzList) {
-
+        //扫描启动类注解
         if (null != appconfig && appconfig.isAnnotationPresent(SpringApplication.class)) {
-
+            //获取spring应用配置注解对象的值
             SpringApplication annotation = appconfig.getAnnotation(SpringApplication.class);
             if (null != annotation) {
-
+                //根据注解中的scanPackagePath属性的值加载目录下的资源文件
                 String beanPackagePath = annotation.scanBeanPackagePath();
+                //我们的路径是以.分隔的，需要转换成以/分隔
                 String path = beanPackagePath.replace('.', '/');
-
+                //获取当前类加载器
                 ClassLoader classLoader = DefaultApplicationContext.class.getClassLoader();
+                //使用类加载器加载资源文件
                 URL resource = classLoader.getResource(path);
 
                 if (resource != null) {
                     File file = new File(resource.getFile());
                     if (file.isDirectory()) {
+                        //获取文件列表中的全部文件
                         File[] files = file.listFiles();
                         if (files != null) {
                             for (File item : files) {
-
+                                //加载列表中需要注入容器的Bean字节码列表
                                 loadAndFilterBeanClazzes(beanClazzList, item);
                             }
                         }
                     } else {
-
+                        //是文件则直接加载它需要注入容器的Bean
                         loadAndFilterBeanClazzes(beanClazzList, file);
                     }
                 }
@@ -116,14 +120,17 @@ public class DefaultApplicationContext implements ApplicationContext {
     private void loadAndFilterBeanClazzes(List<Class<?>> beanClazzList, File item) {
         int begin = item.getAbsolutePath().indexOf("com");
         int end = item.getAbsolutePath().indexOf('.');
-
+        //获取类名（注意替换文件绝对路径的分隔字符）
         String className = item.getAbsolutePath().substring(begin, end).replace('\\', '.');
 
         try {
+            //反射加载字节码
             Class<?> clazz = Class.forName(className);
+            //是否是标注了组件注解的字节码
             if (clazz.isAnnotationPresent(Component.class)) {
+                //如果是则存储在字节码列表中
                 beanClazzList.add(clazz);
-                //收集后置处理器（意图是收集后置处理器而不是收集bean对象）
+                //收集后处理器（意图是收集后处理器而不是收集bean对象）
                 if (BeanPostprocessor.class.isAssignableFrom(clazz)) {
                     beanPostprocessorList.add((BeanPostprocessor) clazz.getDeclaredConstructor().newInstance());
                 }
@@ -211,7 +218,6 @@ public class DefaultApplicationContext implements ApplicationContext {
             }
         }
     }
-
 
 
     /**
@@ -319,6 +325,7 @@ public class DefaultApplicationContext implements ApplicationContext {
             }
         }
     }
+
     private void sortBeanInstanceClazzList() {
 
     }

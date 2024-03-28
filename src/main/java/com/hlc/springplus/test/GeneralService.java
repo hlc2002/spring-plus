@@ -1,24 +1,22 @@
 package com.hlc.springplus.test;
 
-import com.hlc.springplus.bean.annotation.AutoWired;
 import com.hlc.springplus.bean.annotation.Component;
-import com.hlc.springplus.bean.annotation.Scope;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author : spring
  * {@code @description:}
- * {@code @date} : 2024/2/4
+ * {@code @date} : 2024/3/28
  * {@code @modified} By: spring
  * {@code @project:} spring-plus
  */
-@Component(name = "test")
-@Scope(value = "singleton")
-public class TestBean implements InstantiationAwareBeanPostProcessor {
-
+@Component(name = "generalService")
+public class GeneralService implements InstantiationAwareBeanPostProcessor, InitializingBean, DisposableBean, ApplicationContextAware {
     @Override
     public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
         return InstantiationAwareBeanPostProcessor.super.postProcessBeforeInstantiation(beanClass, beanName);
@@ -29,27 +27,19 @@ public class TestBean implements InstantiationAwareBeanPostProcessor {
         return InstantiationAwareBeanPostProcessor.super.postProcessAfterInstantiation(bean, beanName);
     }
 
-    @AutoWired
-    private TestBean1 testBean1;
 
-    private String content = "test";
+    @Override
+    public void destroy() throws Exception {
 
-    public String getContent() {
-        return content;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
     }
 
-    public TestBean() {
-    }
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 
-    public TestBean(String content) {
-        this.content = content;
-    }
-
-    public void test() {
-        testBean1.test();
     }
 }
