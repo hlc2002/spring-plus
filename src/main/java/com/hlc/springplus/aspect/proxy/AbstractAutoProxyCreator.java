@@ -9,5 +9,5 @@ import com.hlc.springplus.context.postprocessor.BeanPostprocessor;
  * {@code @modified} By: spring
  * {@code @project:} spring-plus
  */
-public abstract class AbstractAutoProxyCreator implements BeanPostprocessor , JdkDynamicProxy , CglibDynamicProxy{
+public abstract class AbstractAutoProxyCreator implements BeanPostprocessor {
 }

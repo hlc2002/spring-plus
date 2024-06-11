@@ -28,18 +28,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@code @project:} spring-plus
  */
 public class DefaultApplicationContext implements ApplicationContext {
-    private final Class<?> appconfig;
+    private final Class<?> appConfig;
 
-    private List<Class<?>> beanClazzList = new LinkedList<>();
-    private Map<String, Object> singletonBeanMap = new ConcurrentHashMap<>(256);
+    private final Map<String, Object> singletonBeanMap = new ConcurrentHashMap<>(256);
 
-    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
-    private List<BeanPostprocessor> beanPostprocessorList = new LinkedList<>();
+    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+    private final List<BeanPostprocessor> beanPostprocessorList = new LinkedList<>();
 
     public DefaultApplicationContext(Class<?> appconfig) {
         // 传入启动类加载启动类上的配置
-        this.appconfig = appconfig;
+        this.appConfig = appconfig;
         //1、扫描启动类注解的字节码列表
+        List<Class<?>> beanClazzList = new LinkedList<>();
         scanBeansByPackage(beanClazzList);
         //2、注册bean的BeanDefinition初始配置信息
         initBeanDefinition(beanClazzList, beanDefinitionMap);
@@ -74,9 +74,9 @@ public class DefaultApplicationContext implements ApplicationContext {
      */
     protected void scanBeansByPackage(List<Class<?>> beanClazzList) {
         //扫描启动类注解
-        if (null != appconfig && appconfig.isAnnotationPresent(SpringApplication.class)) {
+        if (null != appConfig && appConfig.isAnnotationPresent(SpringApplication.class)) {
             //获取spring应用配置注解对象的值
-            SpringApplication annotation = appconfig.getAnnotation(SpringApplication.class);
+            SpringApplication annotation = appConfig.getAnnotation(SpringApplication.class);
             if (null != annotation) {
                 //根据注解中的scanPackagePath属性的值加载目录下的资源文件
                 String beanPackagePath = annotation.scanBeanPackagePath();
@@ -156,7 +156,7 @@ public class DefaultApplicationContext implements ApplicationContext {
                 Lazy lazy = clazz.getAnnotation(Lazy.class);
 
                 beanDefinition.setBeanClazz(clazz);
-                beanDefinition.setLazy(null != lazy);
+                beanDefinition.setLazy(null != lazy ? Boolean.TRUE : Boolean.FALSE);
                 beanDefinition.setScope(null != scope ? scope.value() : "prototype");
                 String beanName = component.name();
                 if (beanName.isEmpty()) {
@@ -324,9 +324,5 @@ public class DefaultApplicationContext implements ApplicationContext {
                 }
             }
         }
-    }
-
-    private void sortBeanInstanceClazzList() {
-
     }
 }
